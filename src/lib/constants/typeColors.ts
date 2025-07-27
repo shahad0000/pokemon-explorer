@@ -1,0 +1,21 @@
+export const typeColors: Record<string, string> = {
+    fire: 'bg-red-800 text-red-100 border border-red-700',
+    water: 'bg-blue-900 text-blue-100 border border-blue-700',
+    grass: 'bg-green-900 text-green-100 border border-green-700',
+    electric: 'bg-yellow-800 text-yellow-100 border border-yellow-700',
+    poison: 'bg-purple-900 text-purple-100 border border-purple-700',
+    bug: 'bg-lime-900 text-lime-100 border border-lime-700',
+    normal: 'bg-gray-900 text-gray-200 border border-gray-700',
+    ground: 'bg-amber-900 text-amber-100 border border-amber-700',
+    rock: 'bg-stone-900 text-stone-100 border border-stone-700',
+    psychic: 'bg-pink-900 text-pink-100 border border-pink-700',
+    ghost: 'bg-indigo-900 text-indigo-100 border border-indigo-700',
+    dark: 'bg-slate-900 text-slate-200 border border-slate-700',
+    steel: 'bg-zinc-900 text-zinc-200 border border-zinc-700',
+    fairy: 'bg-rose-900 text-rose-100 border border-rose-700',
+    ice: 'bg-cyan-900 text-cyan-100 border border-cyan-700',
+    dragon: 'bg-violet-900 text-violet-100 border border-violet-700',
+    fighting: 'bg-orange-900 text-orange-100 border border-orange-700',
+    flying: 'bg-sky-900 text-sky-100 border border-sky-700',
+  };
+  
