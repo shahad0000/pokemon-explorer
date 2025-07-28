@@ -1,24 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { writable } from 'svelte/store';
-	import { onMount } from 'svelte';
 
 	const pokemon = writable<any>(null);
 	const loading = writable(false);
 	const error = writable(false);
 
-	$: id = $page.params.id;
-
-	$: if (id) {
-		loading.set(true);
-		error.set(false);
-		fetchPokemon(id);
-	}
-
-	async function fetchPokemon(id: string) {
+	const fetchPokemon = async (id: string) => {
 		try {
 			const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-			if (!res.ok) throw new Error('Failed to fetch data.');
+			if (!res.ok) throw new Error('Failed to fetch pokemon.');
 			const data = await res.json();
 			pokemon.set(data);
 		} catch (err) {
@@ -28,6 +19,14 @@
 		} finally {
 			loading.set(false);
 		}
+	};
+
+	// re-fetch pokemon whenever the id changes
+	$: id = $page.params.id;
+	$: if (id) {
+		loading.set(true);
+		error.set(false);
+		fetchPokemon(id);
 	}
 </script>
 
@@ -63,6 +62,7 @@
 				alt={$pokemon.name}
 			/>
 		</div>
+        <!-- base stats -->
 		<div>
 			<div class=" mb-1 text-2xl">Base Stats</div>
 			{#each $pokemon.stats as stat}
@@ -77,6 +77,7 @@
 				</div>
 			{/each}
 		</div>
+		<!-- abilities -->
 		<div class="mt-3">
 			<div class="text-2xl font-medium">Abilities:</div>
 			<div class="pb-5">
