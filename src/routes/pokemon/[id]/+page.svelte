@@ -66,11 +66,11 @@
 		<div>
 			<div class=" mb-1 text-2xl">Base Stats</div>
 			{#each $pokemon.stats as stat}
-				<div class="mb-2 flex items-center gap-4 text-sm text-neutral-300 capitalize">
+				<div class="mb-2 flex items-center gap-4 text-sm text-muted-foreground capitalize">
 					<span class="w-30 font-medium">
 						{stat.stat.name === 'hp' ? 'HP' : stat.stat.name}
 					</span>
-					<div class="h-1.5 flex-1 overflow-hidden rounded bg-neutral-700">
+					<div class="h-1.5 flex-1 overflow-hidden rounded bg-card">
 						<div class="h-full bg-sky-600" style="width: {Math.min(stat.base_stat, 100)}%"></div>
 					</div>
 					<span class="w-8 text-right font-semibold">{stat.base_stat}</span>
@@ -82,7 +82,7 @@
 			<div class="text-2xl font-medium">Abilities:</div>
 			<div class="pb-5">
 				{#each $pokemon.abilities as ability}
-					<div class="text-lg text-neutral-300 capitalize">{ability.ability.name}</div>
+					<div class="text-lg text-muted-foreground capitalize">{ability.ability.name}</div>
 				{/each}
 			</div>
 		</div>

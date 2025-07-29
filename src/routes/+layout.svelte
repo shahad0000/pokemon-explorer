@@ -6,6 +6,7 @@
 	import { goto } from '$app/navigation';
 	import { invalidate } from '$app/navigation';
 	import { Input } from '$lib/components/ui/input';
+	import { isDark } from '$lib/stores/theme';
 	import {
 		DropdownMenu,
 		DropdownMenuContent,
@@ -18,6 +19,7 @@
 
 	let searchTerm = writable('');
 	let selectedId: number | null = null;
+	let showMobileMenu = false;
 	const { pokemons, types } = data;
 	const selectedTypes = writable<Set<string>>(new Set());
 
@@ -38,7 +40,7 @@
 			filtered = filtered.filter((p) => p.types.some((t) => $selectedTypes.has(t)));
 		}
 
-		// handle search 
+		// handle search
 		if ($searchTerm) {
 			const term = $searchTerm.toLowerCase();
 			filtered = filtered.filter(
@@ -56,11 +58,59 @@
 		await goto(`/pokemon/${id}`, { replaceState: false, noScroll: false });
 		invalidate(`/pokemon/${id}`);
 	};
+
+	$: {
+		if (typeof document !== 'undefined') {
+			document.documentElement.classList.toggle('dark', $isDark);
+		}
+	}
 </script>
 
-<div class="flex min-h-screen min-w-screen bg-neutral-900 p-1 text-white lg:p-8">
-	<div class="flex w-full flex-col-reverse rounded-2xl border border-neutral-700 lg:flex-row">
-		<!-- section 1 -->
+<div
+	class="flex min-h-screen min-w-screen bg-background p-1 text-foreground lg:p-8"
+	class:dark={$isDark}
+>
+	<div class="flex w-full flex-col-reverse rounded-2xl border border-muted lg:flex-row">
+		<!-- Section 1 -->
+		<!-- Mobile Menu -->
+		<div class=" order-1 flex items-center justify-between px-5 py-4 lg:hidden">
+			<div class="flex items-center gap-3 text-xl font-semibold">
+				<img src="/pokemon.png" alt="pokemon icon" class="h-8 w-8" />
+				<p>Pokémon Explorer</p>
+			</div>
+			<button on:click={() => (showMobileMenu = !showMobileMenu)}>
+				<Icon icon="lucide:menu" class="h-7 w-7" />
+			</button>
+		</div>
+		{#if showMobileMenu}
+			<div
+				role="button"
+				tabindex="0"
+				class="fixed inset-0 z-50 bg-background/90 p-5 backdrop-blur-sm lg:hidden"
+				on:click={() => (showMobileMenu = false)}
+				on:keydown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						showMobileMenu = false;
+					}
+				}}
+			>
+				<div class="flex flex-col space-y-4">
+					<button class="flex items-center gap-3 rounded-xl bg-card p-3 text-xl">
+						<Icon icon="lucide:compass" class="text-muted-foreground" />
+						<p>Explore</p>
+					</button>
+
+					<button
+						on:click={() => isDark.update((v) => !v)}
+						class="flex items-center gap-3 rounded-xl bg-card p-3 text-xl"
+					>
+						<Icon icon={$isDark ? 'lucide:sun' : 'lucide:moon'} class="text-muted-foreground" />
+						<p>{$isDark ? 'Light' : 'Dark'} Mode</p>
+					</button>
+				</div>
+			</div>
+		{/if}
+
 		<div
 			class="sticky top-0 hidden h-screen items-center space-y-5 px-11 py-5 lg:flex lg:w-1/3 lg:flex-col"
 		>
@@ -70,33 +120,44 @@
 				</div>
 				<p>Pokémon Explorer</p>
 			</div>
-			<button
-				class="flex w-85 cursor-pointer items-center gap-4 rounded-xl bg-zinc-800 p-3 text-2xl"
-			>
-				<Icon icon="lucide:compass" class=" text-zinc-400" />
-				<p>Explore</p>
-			</button>
+			<div class="flex flex-col space-y-3">
+				<button class="flex w-85 cursor-pointer items-center gap-4 rounded-xl bg-card p-3 text-2xl">
+					<Icon icon="lucide:compass" class="text-muted-foreground" />
+					<p>Explore</p>
+				</button>
+				<button
+					on:click={() => isDark.update((v) => !v)}
+					class="flex w-85 cursor-pointer items-center gap-4 rounded-xl bg-card p-3 text-2xl"
+				>
+					<Icon icon="l{$isDark ? 'ucide:sun' : 'ucide:moon'}" class="text-muted-foreground" />
+
+					<p>
+						{$isDark ? 'Light' : 'Dark'} Mode
+					</p>
+				</button>
+			</div>
 		</div>
-		<!-- section 2 -->
-		<div class="flex-col space-y-2 border-x border-stone-800 p-2 lg:w-1/3 lg:p-5">
-			<!-- search bar -->
-			<div class="sticky top-0 overflow-scroll bg-neutral-900 p-1 lg:p-5">
+
+		<!-- Section 2 -->
+		<div class="flex-col space-y-2 border-x border-muted p-2 lg:w-1/3 lg:p-5">
+			<!-- Search Bar -->
+			<div class="sticky top-0 overflow-scroll bg-background p-1 lg:p-5">
 				<div class="flex h-fit w-full items-end gap-4">
-					<div
-						class=" flex h-fit flex-1 items-center rounded-xl bg-neutral-800 px-4 focus-within:border"
-					>
-						<Icon icon="mdi:magnify" class="h-5 w-5 text-zinc-400" />
+					<div class="flex h-fit flex-1 items-center rounded-xl bg-card px-4 focus-within:border">
+						<Icon icon="mdi:magnify" class="h-5 w-5 text-muted-foreground" />
 						<Input
 							placeholder="Search Pokémon..."
 							bind:value={$searchTerm}
-							class="flex border-none bg-transparent text-white placeholder-neutral-400 focus:border-none focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
+							class="flex border-none bg-transparent text-foreground placeholder-muted-foreground shadow-none focus:border-none focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
 						/>
 					</div>
+
+					<!-- Type Filter -->
 					<DropdownMenu>
-						<DropdownMenuTrigger class="mt-2 rounded-md bg-neutral-800 px-4 py-2 text-sm">
+						<DropdownMenuTrigger class="mt-2 rounded-md bg-card px-4 py-2 text-sm text-foreground">
 							Filter by Type
 						</DropdownMenuTrigger>
-						<DropdownMenuContent class="bg-neutral-800 text-white">
+						<DropdownMenuContent class="bg-card text-foreground">
 							{#each types as type}
 								<DropdownMenuItem>
 									<button
@@ -106,7 +167,7 @@
 										<input
 											type="checkbox"
 											checked={$selectedTypes.has(type)}
-											class="pointer-events-none accent-zinc-400"
+											class="pointer-events-none accent-muted-foreground"
 											readonly
 										/>
 										<span class="capitalize">{type}</span>
@@ -117,14 +178,11 @@
 					</DropdownMenu>
 				</div>
 			</div>
-			<!-- pokemon list -->
+
+			<!-- Pokémon List -->
 			<div class="max-h-[calc(100vh-200px)] space-y-3 overflow-y-auto lg:pr-2">
 				{#each $filteredPokemons as pokemon}
-					<div
-						class="{selectedId === pokemon.id
-							? 'bg-neutral-700'
-							: 'hover:bg-neutral-800'} rounded-xl"
-					>
+					<div class="{selectedId === pokemon.id ? 'bg-card' : 'hover:bg-muted'} rounded-xl">
 						<a
 							href={`/pokemon/${pokemon.id}`}
 							on:click|preventDefault={() => selectPokemon(pokemon.id)}
@@ -135,9 +193,10 @@
 				{/each}
 			</div>
 		</div>
-		<!-- section 3 -->
+
+		<!-- Section 3 -->
 		<div
-			class="top-0 flex h-screen overflow-scroll border-x border-neutral-800 p-6 pb-44 lg:sticky lg:w-1/3"
+			class="top-0 flex h-screen overflow-scroll border-x border-muted p-6 pb-44 lg:sticky lg:w-1/3"
 		>
 			<slot />
 		</div>
