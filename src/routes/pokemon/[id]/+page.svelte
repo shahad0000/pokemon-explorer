@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { writable } from 'svelte/store';
 
 	const pokemon = writable<any>(null);
 	const loading = writable(false);
 	const error = writable(false);
-
+		
 	const fetchPokemon = async (id: string) => {
 		try {
 			const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
@@ -22,7 +22,7 @@
 	};
 
 	// re-fetch pokemon whenever the id changes
-	$: id = $page.params.id;
+	$: id = page.params.id;
 	$: if (id) {
 		loading.set(true);
 		error.set(false);
