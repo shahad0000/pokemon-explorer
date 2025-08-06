@@ -1,90 +1,61 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { writable } from 'svelte/store';
+	import PokemonList from '$lib/components/PokemonList.svelte';
+	import type { PageData } from './$types';
+	import ProgressBar from '$lib/components/ProgressBar.svelte';
+	import { navigating } from '$app/state';
+	import Loading from '$lib/components/Loading.svelte';
+	
+	const { data }: { data: PageData } = $props();
+	const selectedId = $derived(parseInt(page.params.id));
 
-	const pokemon = writable<any>(null);
-	const loading = writable(false);
-	const error = writable(false);
-		
-	const fetchPokemon = async (id: string) => {
-		try {
-			const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-			if (!res.ok) throw new Error('Failed to fetch pokemon.');
-			const data = await res.json();
-			pokemon.set(data);
-		} catch (err) {
-			console.error(err);
-			pokemon.set(null);
-			error.set(true);
-		} finally {
-			loading.set(false);
-		}
-	};
-
-	// re-fetch pokemon whenever the id changes
-	$: id = page.params.id;
-	$: if (id) {
-		loading.set(true);
-		error.set(false);
-		fetchPokemon(id);
-	}
+	const isNavigating = $derived(
+		navigating?.to?.route?.id === '/pokemon/[id]' && navigating?.from?.route?.id === '/pokemon/[id]'
+	);
 </script>
 
-{#if $loading}
-	<div class="flex h-full w-full items-center justify-center">
-		<img src="/pokemon.png" alt="Loading" class="h-16 w-16 animate-spin" />
-	</div>
-{:else if $error}
-	<div
-		class="flex h-full w-full flex-col items-center justify-center gap-4 text-center text-rose-700"
-	>
-		<p>Failed to load Pokémon. Please try again.</p>
-		<button
-			class="rounded bg-white px-4 py-2 text-black hover:bg-neutral-200"
-			on:click={() => fetchPokemon(id)}
-		>
-			Retry
-		</button>
-	</div>
-{:else if $pokemon}
-	<div class="side-panel w-full text-2xl">
-		<div class="flex items-center justify-between">
-			<div class="flex items-center gap-3">
-				<h2 class="font-semibold capitalize">{$pokemon.name}</h2>
-				<h2 class="text-neutral-400">#{$pokemon.id}</h2>
+<PokemonList {selectedId} />
+
+<div class="w-full p-4 lg:w-3/8">
+	{#if isNavigating}
+		<div class="flex h-full items-center justify-center">
+			<div class="text-center">
+				<Loading />
+				<p class="mt-4 text-muted-foreground">Loading Pokemon...</p>
 			</div>
-			<a href="/" class="cursor-pointer"> X </a>
 		</div>
-		<div class="my-5 flex h-fit w-full items-center justify-center">
-			<img
-				class="h-full w-60"
-				src={$pokemon.sprites.other['official-artwork'].front_default}
-				alt={$pokemon.name}
-			/>
-		</div>
-        <!-- base stats -->
-		<div>
-			<div class=" mb-1 text-2xl">Base Stats</div>
-			{#each $pokemon.stats as stat}
-				<div class="mb-2 flex items-center gap-4 text-sm text-muted-foreground capitalize">
-					<span class="w-30 font-medium">
-						{stat.stat.name === 'hp' ? 'HP' : stat.stat.name}
-					</span>
-					<div class="h-1.5 flex-1 overflow-hidden rounded bg-card">
-						<div class="h-full bg-sky-600" style="width: {Math.min(stat.base_stat, 100)}%"></div>
-					</div>
-					<span class="w-8 text-right font-semibold">{stat.base_stat}</span>
+	{:else if data.pokemon}
+		<div class="side-panel w-full text-2xl">
+			<div class="flex items-center justify-between">
+				<div class="flex items-center gap-3">
+					<h2 class="font-semibold capitalize">{data.pokemon.name}</h2>
+					<h2 class="text-neutral-400">#{data.pokemon.id}</h2>
 				</div>
-			{/each}
-		</div>
-		<!-- abilities -->
-		<div class="mt-3">
-			<div class="text-2xl font-medium">Abilities:</div>
-			<div class="pb-5">
-				{#each $pokemon.abilities as ability}
-					<div class="text-lg text-muted-foreground capitalize">{ability.ability.name}</div>
+				<a href="/" class="cursor-pointer"> X </a>
+			</div>
+			<div class="my-5 flex h-fit w-full items-center justify-center">
+				<img
+					class="h-full w-60"
+					src={data.pokemon.sprites.other['official-artwork'].front_default}
+					alt={data.pokemon.name}
+				/>
+			</div>
+			<!-- base stats -->
+			<div>
+				<div class=" mb-1 text-2xl">Base Stats</div>
+				{#each data.pokemon.stats as stat}
+					<ProgressBar name={stat.stat.name} value={stat.base_stat} />
 				{/each}
 			</div>
+			<!-- abilities -->
+			<div class="mt-3">
+				<div class="text-2xl font-medium">Abilities:</div>
+				<div class="pb-5">
+					{#each data.pokemon.abilities as ability}
+						<div class="text-lg text-muted-foreground capitalize">{ability.ability.name}</div>
+					{/each}
+				</div>
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
+</div>
