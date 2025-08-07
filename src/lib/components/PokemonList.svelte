@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PokemonCard from './PokemonCard.svelte';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import SearchInput from './SearchInput.svelte';
 	import TypesFilter from './TypesFilter.svelte';
 	import { pokemonStore } from '$lib/stores/pokemonStore';
@@ -20,9 +21,10 @@
 	const pokemonData = $derived($pokemonStore);
 
 	onMount(async () => {
-		if (pokemonData.pokemons.length === 0 && !pokemonData.loading) {
-			await pokemonStore.loadPokemonData(fetch);
-		}
+		// Initialize store with layout data first
+		pokemonStore.initializeFromLayout($page.data);
+		
+		
 	});
 
 	$effect(() => {
