@@ -1,10 +1,16 @@
 <script lang="ts">
 	import PokemonCard from './PokemonCard.svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import SearchInput from './SearchInput.svelte';
 	import TypesFilter from './TypesFilter.svelte';
-	import { pokemonStore } from '$lib/stores/pokemonStore';
+	import {
+		store,
+		initializeFromLayout,
+		loadMorePokemon,
+		searchPokemon,
+		clearSearch as clearSearchStore
+	} from '$lib/stores/pokemonStore.svelte';
 	import { onMount } from 'svelte';
 	import Loading from './Loading.svelte';
 
@@ -18,23 +24,19 @@
 	let selectedTypes = $state(new Set<string>());
 	let searchTimeout: ReturnType<typeof setTimeout>;
 
-	const pokemonData = $derived($pokemonStore);
+	const pokemonData = $derived(store);
 
 	onMount(async () => {
-		// Initialize store with layout data first
-		pokemonStore.initializeFromLayout($page.data);
-		
-		
+		initializeFromLayout(page.data);
 	});
 
 	$effect(() => {
 		clearTimeout(searchTimeout);
-
 		if (searchTerm.length === 0) {
-			pokemonStore.clearSearch();
+			clearSearch();
 		} else if (searchTerm.length >= 2) {
 			searchTimeout = setTimeout(async () => {
-				await pokemonStore.searchPokemon(fetch, searchTerm);
+				await searchPokemon(fetch, searchTerm);
 			}, 300);
 		}
 	});
@@ -74,12 +76,12 @@
 	};
 
 	const loadMore = async () => {
-		await pokemonStore.loadMorePokemon(fetch);
+		await loadMorePokemon(fetch);
 	};
 
 	const clearSearch = () => {
 		searchTerm = '';
-		pokemonStore.clearSearch();
+		clearSearchStore();
 	};
 </script>
 
